@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <wchar.h>
 
@@ -18,13 +19,45 @@ int check_if_bool(char* s){
 	return 0;
 }
 
+// check if input is convertible to double (covers all cases)
 int check_if_num(char* s){
+	
 	return 1;
 }
 
 int check_if_json(char* s){
 	return 1;
 }
+
+// checks if a json key follows valid naming conventions
+int check_key_validity(char* s){
+	int valid = check_str_delim(s);
+	return valid;
+}
+
+// check if json value is a valid type (number, string, array, bool or
+// other json)
+int check_value_validity(char* s){
+	// check if the number is exactly 0
+	if (strlen(s) == 1 && strcmp(s[0], "0")){
+		return 1;
+	}
+	// check for extra (not valid) spaces
+	
+	char* end = NULL;
+	double f = strtod(s, &end);
+	if (errno == ERANGE)
+	{
+		printf("range error, got ");
+		errno = 0;
+		return 0;
+	}
+	if (f == 0){
+		return 0;
+	}
+	return 1;
+}
+
 
 int main(){
 	const char* fname = "./test.json";
