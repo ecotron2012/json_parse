@@ -3,61 +3,161 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <wchar.h>
+#include <ctype.h>
 
-// Checks if the string is delimited by quotes (inside the string)
-// for example, the string ""key"" is delimited by quotes, but "key" is not.
-int check_str_delim(char* s){
-	char first = s[0];
-	char last = s[-2];
-	if (strcmp(&first, "\"") && strcmp(&last,"\"")){
-		return 1;
-	}
-	return 0;
-}
+// inspired by:
+// https://youtu.be/Kqp9a91sjX4?si=9_I33RbzsT-WzVKY
 
-int check_if_bool(char* s){
-	return 0;
-}
+typedef enum {
+	INVALID,
+	NULL_TYPE,
+	OBJ_BEGIN,
+	OBJ_END,
+	STRING,
+	CHAR,
+	PUNCTUATOR,
+	NUMBER,
+	BOOLEAN,
+	COMMA,
+	ARR_BEGIN,
+	ARR_END,
+	FILE_EOF
+} TokenType;
 
-// check if input is convertible to double (covers all cases)
-int check_if_num(char* s){
+typedef struct {
+	char* lexeme;
+	TokenType type;
+} Token;
+
+typedef struct {
 	
-	return 1;
-}
+} Lexer;
 
-int check_if_json(char* s){
-	return 1;
-}
-
-// checks if a json key follows valid naming conventions
-int check_key_validity(char* s){
-	int valid = check_str_delim(s);
-	return valid;
-}
-
-// check if json value is a valid type (number, string, array, bool or
-// other json)
-int check_value_validity(char* s){
-	// check if the number is exactly 0
-	if (strlen(s) == 1 && strcmp(s[0], "0")){
-		return 1;
+Token get_string_token(FILE* fp){
+	char buf[2];
+	char lex[2048];
+	Token token;
+	strcat(lex, "\"");
+	while(fgets(buf, sizeof buf, fp) != NULL){
+		char curr = buf[0];
+		strcat(lex, &curr);
+		if(curr == '\"'){
+			token.lexeme = lex;
+			token.type = STRING;
+			return token;
+		}
 	}
-	// check for extra (not valid) spaces
-	
-	char* end = NULL;
-	double f = strtod(s, &end);
-	if (errno == ERANGE)
-	{
-		printf("range error, got ");
-		errno = 0;
-		return 0;
-	}
-	if (f == 0){
-		return 0;
-	}
-	return 1;
+	// if we read the entire file and no closing brackets are found,
+	// mark as invalid
+	token.lexeme = lex;
+	token.type = INVALID;
+	return token;
 }
 
+Token get_numeric_token(FILE* fp, char first){
+	char buf[2];
+	char lex[2048];
+	Token token;
+	int has_dot = 0;
+	strcat(lex, &first);
+	while(fgets(buf, sizeof buf, fp) != NULL){
+		char curr = buf[0];
+		if (isdigit(curr) || strcmp(&curr, ".")){
+			strcat(lex, &curr);
+			if (strcmp(&curr, ".") && has_dot == 0){
+				has_dot = 1;
+			}else if(has_dot){
+				token.lexeme = lex;
+				token.type = INVALID;
+				return token;
+			}
+		}
+	}
+	// if we read the entire file and no closing brackets are found,
+	// mark as invalid
+	token.lexeme = lex;
+	token.type = INVALID;
+	return token;
+}
+
+Token* lexical_analysis(char* fname){
+	Token* tokens = (Token*)malloc(2048 * sizeof(*tokens));
+
+	// Check for malloc Failure
+	if (tokens == NULL) {
+		fprintf(stderr, "Memory allocation failed\n");
+		return NULL;
+	}
+
+	int curr_token_idx = 0;
+	FILE* fp = fopen(fname, "r");
+	if (!fp){
+		perror("File opening failed");
+		return NULL;
+	}
+
+	// read character by character
+	char buf[2];
+	char keyval_pairs[1024];
+	while(fgets(buf, sizeof buf, fp) != NULL){
+		char curr = buf[0];
+		switch (curr) {
+			case '{':
+				tokens[curr_token_idx].lexeme = buf;
+				tokens[curr_token_idx].type = OBJ_BEGIN;
+				printf("Found beggining bracket");
+				break;
+			case '}':
+				tokens[curr_token_idx].lexeme = buf;
+				tokens[curr_token_idx].type = OBJ_END;
+				printf("Found end bracket");
+				break;
+			case '[':
+				tokens[curr_token_idx].lexeme = buf;
+				tokens[curr_token_idx].type = ARR_BEGIN;
+				printf("Found beggining array bracket");
+				break;
+			case ']':
+				tokens[curr_token_idx].lexeme = buf;
+				tokens[curr_token_idx].type = ARR_END;
+				printf("Found end array bracket");
+				break;
+			case ':':
+				tokens[curr_token_idx].lexeme = buf;
+				tokens[curr_token_idx].type = PUNCTUATOR;
+				printf("Found colon");
+				break;
+			case ',':
+				tokens[curr_token_idx].lexeme = buf;
+				tokens[curr_token_idx].type = COMMA;
+				printf("Found comma");
+				break;
+			case '\"':
+				tokens[curr_token_idx] = get_string_token(fp);
+				printf("Found double-quote string");
+				break;
+			// skip the trailing whitespaces
+			case ' ':
+				printf("Skipping whitespace");
+				break;
+			case EOF:
+				tokens[curr_token_idx].lexeme = buf;
+				tokens[curr_token_idx].type = FILE_EOF;
+				printf("Found EOF");
+				break;
+			default:
+				if(isdigit(curr) || strcmp(&curr, "-")){
+					// TODO: handle cases for numbers and strings
+				}
+				printf("Unkown character");
+				break;
+		}
+		curr_token_idx++;
+	}
+	fclose(fp);
+	printf("key-value pairs: %s\n", keyval_pairs);
+	return tokens;
+}
 
 int main(){
 	const char* fname = "./test.json";
