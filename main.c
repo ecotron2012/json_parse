@@ -54,25 +54,92 @@ Token get_string_token(FILE* fp){
 	return token;
 }
 
+typedef enum {
+	START,
+	INTEGER,
+	DOUBLE,
+	SCIENTIFIC_NOTATION,
+	__VALID_END_STATES,
+	INTEGER_WITH_DOT,
+	INITIAL_MINUS_SIGN,
+	SCIENTIFIC_E,
+	SCIENTIFIC_E_WITH_SIGN,
+	__LAST_STATE
+} NUMERIC_FSM_STATES_t;
+
+typedef struct {
+	NUMERIC_FSM_STATES_t state;
+	char *tokens;
+	NUMERIC_FSM_STATES_t next_state;
+} NUMERIC_FSM_INFO_t;
+
+// check if the token is a number using FSMs
 Token get_numeric_token(FILE* fp, char first){
+	NUMERIC_FSM_INFO_t state_machine[] = {
+		{START, "1234567890", INTEGER},
+		{START, "-", INITIAL_MINUS_SIGN},
+		{INITIAL_MINUS_SIGN, "1234567890", INTEGER},
+		{INTEGER, "1234567890", INTEGER},
+		{INTEGER, "e", SCIENTIFIC_E},
+		{INTEGER, ".", INTEGER_WITH_DOT},
+		{INTEGER_WITH_DOT, "1234567890", DOUBLE},
+		{DOUBLE, "1234567890", DOUBLE},
+		{DOUBLE, "e", SCIENTIFIC_E},
+		{SCIENTIFIC_E, "1234567890", SCIENTIFIC_NOTATION},
+		{SCIENTIFIC_E, "-+", SCIENTIFIC_E_WITH_SIGN},
+		{SCIENTIFIC_E_WITH_SIGN, "1234567890", SCIENTIFIC_NOTATION},
+		{SCIENTIFIC_NOTATION, "1234567890", SCIENTIFIC_NOTATION},
+		{__LAST_STATE, "", __LAST_STATE}
+		
+	};
+	NUMERIC_FSM_STATES_t current_state = START;
+	NUMERIC_FSM_INFO_t *p = state_machine;
+	NUMERIC_FSM_INFO_t *found;
+
 	char buf[2];
 	char lex[2048];
 	Token token;
 	int has_dot = 0;
+	while(p->state != __LAST_STATE){
+		if (strchr(p->tokens, first) != NULL){
+			found = state_machine;
+			break;
+		}
+		p++;
+	}
+	if(found != NULL){
+		current_state = p->next_state;
+	}else{
+		printf("Invalid character: %s", &first);
+		token.lexeme = &first;
+		token.type = INVALID;
+		return token;
+	}
 	strcat(lex, &first);
 	while(fgets(buf, sizeof buf, fp) != NULL){
 		char curr = buf[0];
-		if (isdigit(curr) || strcmp(&curr, ".")){
-			strcat(lex, &curr);
-			if (strcmp(&curr, ".") && has_dot == 0){
-				has_dot = 1;
-			}else if(has_dot){
-				token.lexeme = lex;
-				token.type = INVALID;
-				return token;
+		// TODO: check for delimiter characters before state processing
+		// 
+		//
+		p = state_machine;
+		while(p->state != __LAST_STATE){
+			if (strchr(p->tokens, curr) != NULL){
+				found = state_machine;
+				break;
 			}
+			p++;
+		}
+		strcat(lex, &curr);
+		if(found != NULL){
+			current_state = p->next_state;
+		}else{
+			printf("Invalid character: %s", &first);
+			token.lexeme = lex;
+			token.type = INVALID;
+			return token;
 		}
 	}
+
 	// if we read the entire file and no closing brackets are found,
 	// mark as invalid
 	token.lexeme = lex;
