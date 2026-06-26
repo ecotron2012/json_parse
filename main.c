@@ -1,8 +1,8 @@
 #include "parser.h"
 
 void test_file(const char* fname){
-	Token* tokens = lexical_analysis(fname);
 	printf("testing file: %s...\n", fname);
+	Token* tokens = lexical_analysis(fname);
 	Token* p = tokens;
 	while(p != NULL && p->lexeme != NULL){
 		printf("Token: %s, Type: %s\n", p->lexeme, stringFromToken(p->type));
