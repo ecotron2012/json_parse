@@ -319,8 +319,9 @@ int main(){
 	Token* p = tokens;
 	while(p != NULL && p->lexeme != NULL){
 		printf("Token: %s, Type: %s\n", p->lexeme, stringFromToken(p->type));
+		free(p->lexeme);
 		p++;
 	}
-	// free(tokens);
+	free(tokens);
 	return 0;
 }
