@@ -353,13 +353,34 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
   // the state machine represents the current value, while p represents
   // the next step
   while (p != NULL && p->lexeme != NULL) {
-    count++;
     printf("Checking next expected next tokens...\n");
     printf("step value: %d\n", step);
     TokenType *next_tokens = state_machine[step].expected_next_tokens;
     char state_name[strlen(state_machine[step].state_name) + 1];
     strcpy(state_name, state_machine[step].state_name);
     printf("Got the next tokens.\n");
+
+    if (strcmp(state_name, "obj_begin") == 0) {
+      // modify to not allow nested objects inside internal JSON
+      if (p->type != OBJ_END && stop_at_closing_bracket == 1) {
+        state_machine[1].expected_next_tokens = (TokenType[]){STRING};
+      }
+    }
+
+    if (strcmp(state_name, "end") == 0) {
+      if (stop_at_closing_bracket == 1) {
+        printf("Exiting at first detected closing bracket after %d traversed "
+               "tokens...\n",
+               count);
+        return count;
+      } else {
+        if (p != NULL) {
+          printf("Invalid syntax: JSON object has trailing text after "
+                 "closing\n");
+          return -1;
+        }
+      }
+    }
 
     if (p->type == INVALID) {
       printf("Syntax error: Invalid token type is present\n");
@@ -376,9 +397,11 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
           printf("Syntax error: JSON value has an invalid structure\n");
           return -1;
         }
-        printf("Advancing %d steps\n", valid + 1);
-        count += valid;
-        p += valid + 1;
+        printf("Advancing %d steps from current position with token: %s\n",
+               valid, stringFromToken(p->type));
+        step = 4;
+        p += valid;
+        continue;
       } else if (p->type == ARR_BEGIN) {
         printf("Checking inner array validity...\n");
         int valid = check_valid_array(p);
@@ -386,25 +409,15 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
           printf("Syntax error: Array value has an invalid structure\n");
           return -1;
         }
-        printf("Advancing %d steps\n", valid + 1);
-        count += valid;
-        p += valid + 1;
+        printf("Advancing %d steps from current position with token: %s\n",
+               valid, stringFromToken(p->type));
+        step = 4;
+        p += valid;
+        continue;
       }
     }
-    if (strcmp(state_name, "end") == 0) {
-      if (stop_at_closing_bracket == 1) {
-        printf("Exiting at first detected closing bracket after %d traversed "
-               "tokens...\n",
-               count);
-        return count;
-      } else {
-        if (p != NULL) {
-          printf("Invalid syntax: JSON object has trailing text after "
-                 "closing\n");
-          return -1;
-        }
-      }
-    }
+
+    count++;
 
     // check if the token is a valid next step
     if (syntactic_fsm_linear_search(next_tokens, sizeof(next_tokens),
@@ -434,6 +447,11 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
           step = (step + 1) % 7;
         }
       }
+    } else {
+      printf("Error: JSON doesn't have a valid token type, instead have token "
+             "type: %s\n",
+             stringFromToken(p->type));
+      return -1;
     }
     p++;
   }

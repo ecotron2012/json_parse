@@ -15,6 +15,8 @@ void test_invalid_json(void) {
   CU_ASSERT(parse("./tests/invalid/test2.json") == 1);
   CU_ASSERT(parse("./tests/invalid/test3.json") == 1);
   CU_ASSERT(parse("./tests/invalid/test4.json") == 1);
+  CU_ASSERT(parse("./tests/invalid/test5.json") == 1);
+  CU_ASSERT(parse("./tests/invalid/test6.json") == 1);
 }
 
 int main() {
