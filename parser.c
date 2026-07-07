@@ -376,6 +376,8 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
           printf("Syntax error: JSON value has an invalid structure\n");
           return -1;
         }
+        printf("Advancing %d steps\n", valid + 1);
+        count += valid;
         p += valid + 1;
       } else if (p->type == ARR_BEGIN) {
         printf("Checking inner array validity...\n");
@@ -384,6 +386,8 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
           printf("Syntax error: Array value has an invalid structure\n");
           return -1;
         }
+        printf("Advancing %d steps\n", valid + 1);
+        count += valid;
         p += valid + 1;
       }
     }
@@ -453,7 +457,8 @@ int check_valid_array(Token *tokens) {
 
   while (p != NULL && p->lexeme != NULL) {
     count++;
-    printf("Checking next expected next tokens in array...\n");
+    printf("Checking next expected next tokens in array current step %s...\n",
+           state_machine[step].state_name);
     TokenType *next_tokens = state_machine[step].expected_next_tokens;
     char state_name[strlen(state_machine[step].state_name) + 1];
     strcpy(state_name, state_machine[step].state_name);
@@ -475,6 +480,8 @@ int check_valid_array(Token *tokens) {
           printf("Syntax error: JSON value has an invalid structure\n");
           return -1;
         }
+        printf("Advancing %d steps\n", valid + 1);
+        count += valid;
         p += valid + 1;
       } else if (p->type == ARR_BEGIN) {
         printf("Checking inner array validity...\n");
@@ -483,11 +490,14 @@ int check_valid_array(Token *tokens) {
           printf("Syntax error: Array value has an invalid structure\n");
           return -1;
         }
+        printf("Advancing %d steps\n", valid + 1);
+        count += valid;
         p += valid + 1;
       }
     }
 
     if (strcmp(state_name, "end") == 0) {
+      printf("Returning after finding end bracket with %d steps\n", count);
       return count;
     }
 
@@ -519,7 +529,9 @@ int check_valid_array(Token *tokens) {
         }
       }
     } else {
-      printf("Error: Array doesn't have a valid token type\n");
+      printf("Error: Array doesn't have a valid token type, instead have token "
+             "type: %s\n",
+             stringFromToken(p->type));
       return -1;
     }
     p++;
