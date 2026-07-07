@@ -1,0 +1,7 @@
+{
+  "usuario": {
+    "id": 10,
+    "correo": "test@test.com"
+  ,
+  "admin": false
+}

@@ -1,8 +1,17 @@
-buildlib:
+build:
+	mkdir -p ./build
+
+build/lib:
 	gcc -c parser.c -o parser.o
 	ar rcs libjsonparse.a parser.o
 
-program: parser.o
+build/program: parser.o
 	gcc main.c -L. -ljsonparse -o main
+
+build/test: parser.o
+	gcc -o test ./tests/tests.c -L. -ljsonparse -lcunit
+
+run/test: build/test
+	./test
 run:
 	./main
