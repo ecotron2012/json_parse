@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: install CUnit
-      run: sudo apt install apt-get install libcunit1 libcunit1-doc libcunit1-dev
+      run: sudo apt-get install libcunit1 libcunit1-doc libcunit1-dev
     - name: configure
       run: make build/lib build/test
     - name: run tests with CUnit
