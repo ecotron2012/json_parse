@@ -9,9 +9,9 @@ build/program: parser.o
 	gcc main.c -L. -ljsonparse -o main
 
 build/test: parser.o
-	gcc -o test ./tests/tests.c -L. -ljsonparse -lcunit
+	gcc -o ./tests/runtests ./tests/tests.c -L. -ljsonparse -lcunit
 
 run/test: build/test
-	./test
+	./tests/runtests
 run:
 	./main

@@ -24,8 +24,8 @@ int main() {
   CU_pSuite suite = CU_add_suite("JSONParseTestSuite", 0, 0);
   CU_add_test(suite, "test valid json files()", test_valid_json);
   CU_add_test(suite, "test invalid json files()", test_invalid_json);
-  CU_basic_run_tests();
-  // CU_automated_run_tests();
+  // CU_basic_run_tests();
+  CU_automated_run_tests();
   CU_pFailureRecord pFailure = CU_get_failure_list();
   CU_basic_show_failures(pFailure);
   CU_cleanup_registry();

@@ -19,3 +19,12 @@ jobs:
       run: make build/lib build/test
     - name: run tests with CUnit
       run: make run/test
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: (!cancelled())
+      with:
+        files: |
+          tests/*.xml
+          tests/*.trx
+          tests/*.json
