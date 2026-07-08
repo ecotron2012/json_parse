@@ -22,4 +22,5 @@ jobs:
     - name: report results
       run: |
         echo "# Test results" >> $GITHUB_STEP_SUMMARY
+        cat ./tests/results.txt >> $GITHUB_STEP_SUMMARY
         
