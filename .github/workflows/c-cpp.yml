@@ -21,6 +21,7 @@ jobs:
       run: make run/test
     - name: report results
       run: |
-        bash ./tests/generate_result_log.sh
+        bash ./generate_result_log.sh
         echo "# Test results" >> $GITHUB_STEP_SUMMARY
-        cat ./tests/results.md >> $GITHUB_STEP_SUMMARY
+        cat ./results.md >> $GITHUB_STEP_SUMMARY
+      working-directory: ./tests
