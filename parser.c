@@ -375,7 +375,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
                count);
         return count;
       } else {
-        if (p != NULL) {
+        if (p->lexeme != NULL) {
           printf("Invalid syntax: JSON object has trailing text after "
                  "closing\n");
           return -1;
