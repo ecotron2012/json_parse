@@ -79,6 +79,7 @@ static const char *stringFromState(TokenType t) {
 typedef struct {
   char *state_name;
   TokenType *expected_next_tokens;
+  int token_amt;
 } SYNTACTIC_FSM_INFO_t;
 
 typedef struct {

@@ -341,13 +341,13 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
   int step = 0;
   int count = 0;
   SYNTACTIC_FSM_INFO_t state_machine[] = {
-      {"start", (TokenType[]){OBJ_BEGIN}},
-      {"obj_begin", (TokenType[]){STRING, OBJ_END}},
-      {"key", (TokenType[]){PUNCTUATOR}},
-      {"colon", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE}},
-      {"value", (TokenType[]){COMMA, OBJ_END}},
-      {"comma", (TokenType[]){STRING, OBJ_END}},
-      {"end", (TokenType[]){}},
+      {"start", (TokenType[]){OBJ_BEGIN}, 1},
+      {"obj_begin", (TokenType[]){STRING, OBJ_END}, 2},
+      {"key", (TokenType[]){PUNCTUATOR}, 1},
+      {"colon", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE}, 5},
+      {"value", (TokenType[]){COMMA, OBJ_END}, 2},
+      {"comma", (TokenType[]){STRING, OBJ_END}, 2},
+      {"end", (TokenType[]){}, 0},
   };
 
   // the state machine represents the current value, while p represents
@@ -364,6 +364,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
       // modify to not allow nested objects inside internal JSON
       if (p->type != OBJ_END && stop_at_closing_bracket == 1) {
         state_machine[1].expected_next_tokens = (TokenType[]){STRING};
+        state_machine[1].token_amt = 1;
       }
     }
 
@@ -420,7 +421,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
     count++;
 
     // check if the token is a valid next step
-    if (syntactic_fsm_linear_search(next_tokens, sizeof(next_tokens),
+    if (syntactic_fsm_linear_search(next_tokens, state_machine[step].token_amt,
                                     p->type) != -1) {
       if (strcmp(state_name, "value") == 0) {
         if (p->type == COMMA) {
@@ -466,15 +467,15 @@ int check_valid_array(Token *tokens) {
   int count = 0;
   int step = 0;
   SYNTACTIC_FSM_INFO_t state_machine[] = {
-      {"start", (TokenType[]){ARR_BEGIN}},
-      {"arr_begin", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE, ARR_END}},
-      {"value", (TokenType[]){COMMA, ARR_END}},
-      {"comma", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE}},
-      {"end", (TokenType[]){}},
+      {"start", (TokenType[]){ARR_BEGIN}, 1},
+      {"arr_begin", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE, ARR_END},
+       5},
+      {"value", (TokenType[]){COMMA, ARR_END}, 2},
+      {"comma", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE}, 4},
+      {"end", (TokenType[]){}, 0},
   };
 
   while (p != NULL && p->lexeme != NULL) {
-    count++;
     printf("Checking next expected next tokens in array current step %s...\n",
            state_machine[step].state_name);
     TokenType *next_tokens = state_machine[step].expected_next_tokens;
@@ -485,6 +486,11 @@ int check_valid_array(Token *tokens) {
     if (p->type == INVALID) {
       printf("Syntax error: Invalid token type is present\n");
       return -1;
+    }
+
+    if (strcmp(state_name, "end") == 0) {
+      printf("Returning after finding end bracket with %d steps\n", count);
+      return count;
     }
 
     // handle edge case
@@ -498,9 +504,11 @@ int check_valid_array(Token *tokens) {
           printf("Syntax error: JSON value has an invalid structure\n");
           return -1;
         }
-        printf("Advancing %d steps\n", valid + 1);
+        printf("Advancing %d steps\n", valid);
+        step = 2;
         count += valid;
-        p += valid + 1;
+        p += valid;
+        continue;
       } else if (p->type == ARR_BEGIN) {
         printf("Checking inner array validity...\n");
         int valid = check_valid_array(p);
@@ -508,19 +516,17 @@ int check_valid_array(Token *tokens) {
           printf("Syntax error: Array value has an invalid structure\n");
           return -1;
         }
-        printf("Advancing %d steps\n", valid + 1);
+        printf("Advancing %d steps\n", valid);
+        step = 2;
         count += valid;
-        p += valid + 1;
+        p += valid;
+        continue;
       }
     }
 
-    if (strcmp(state_name, "end") == 0) {
-      printf("Returning after finding end bracket with %d steps\n", count);
-      return count;
-    }
-
+    count++;
     // check if the token is a valid next step
-    if (syntactic_fsm_linear_search(next_tokens, sizeof(next_tokens),
+    if (syntactic_fsm_linear_search(next_tokens, state_machine[step].token_amt,
                                     p->type) != -1) {
       if (strcmp(state_name, "value") == 0) {
         if (p->type == COMMA) {
