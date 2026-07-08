@@ -210,7 +210,7 @@ Token get_numeric_token(FILE *fp, char first) {
 }
 
 Token *lexical_analysis(const char *fname) {
-  Token *tokens = (Token *)malloc(2048 * sizeof(*tokens));
+  Token *tokens = calloc(2048, sizeof(*tokens));
 
   // Check for malloc Failure
   if (tokens == NULL) {
@@ -352,6 +352,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
 
   // the state machine represents the current value, while p represents
   // the next step
+  printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
   while (p != NULL && p->lexeme != NULL) {
     printf("Checking next expected next tokens...\n");
     printf("step value: %d\n", step);
@@ -475,6 +476,7 @@ int check_valid_array(Token *tokens) {
       {"end", (TokenType[]){}, 0},
   };
 
+  printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
   while (p != NULL && p->lexeme != NULL) {
     printf("Checking next expected next tokens in array current step %s...\n",
            state_machine[step].state_name);
