@@ -12,6 +12,6 @@ build/test: parser.o
 	gcc -o ./tests/runtests ./tests/tests.c -L. -ljsonparse -lcunit
 
 run/test: build/test
-	./tests/runtests
+	(cd tests && ./runtests > results.txt)
 run:
 	./main
