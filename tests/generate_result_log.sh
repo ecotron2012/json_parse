@@ -20,14 +20,11 @@ results="$(cat output.txt | gawk '
 failed_cases="$(cat output.txt | gawk '
 	BEGIN{
 		printf "## Failed Test Cases\n"}
-		f=0
 	{
 		if($1 == "Suite"){
-			f=1
 			printf "%s %s %s %s %s %s %s %s %s\n", $1, $2, $3, $4, $5, $6, $7, $8, $9
 		}
-		if($1 ~ /^[[:digit:]]+\.$/ && f = 1 ){
-			f=0
+		if($1 ~ /^[[:digit:]]+\.$/){
 			printf "%s %s %s %s %s %s\n", $1, $2, $3, $4, $5, $6
 		}
 	}

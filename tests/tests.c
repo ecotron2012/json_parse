@@ -8,7 +8,6 @@ void test_valid_json(void) {
   CU_ASSERT(parse("./valid/test2.json") == 0);
   CU_ASSERT(parse("./valid/test3.json") == 0);
   CU_ASSERT(parse("./valid/test4.json") == 0);
-  CU_ASSERT(parse("./valid/test4.json") == 1);
 }
 
 void test_invalid_json(void) {
