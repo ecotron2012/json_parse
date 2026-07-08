@@ -8,6 +8,7 @@ void test_valid_json(void) {
   CU_ASSERT(parse("./valid/test2.json") == 0);
   CU_ASSERT(parse("./valid/test3.json") == 0);
   CU_ASSERT(parse("./valid/test4.json") == 0);
+  CU_ASSERT(parse("./valid/test4.json") == 1);
 }
 
 void test_invalid_json(void) {
@@ -25,8 +26,8 @@ int main() {
   CU_add_test(suite, "test valid json files()", test_valid_json);
   CU_add_test(suite, "test invalid json files()", test_invalid_json);
   CU_basic_run_tests();
-  CU_pFailureRecord pFailure = CU_get_failure_list();
-  CU_basic_show_failures(pFailure);
+  // CU_pFailureRecord pFailure = CU_get_failure_list();
+  // CU_basic_show_failures(pFailure);
   CU_cleanup_registry();
   return 0;
 }

@@ -62,3 +62,4 @@ dkms.conf
 # unit tests results
 *-Results.xml
 results.txt
+results.md
