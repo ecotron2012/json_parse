@@ -356,13 +356,15 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
 
   // the state machine represents the current value, while p represents
   // the next step
-  printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
   while (p != NULL && p->lexeme != NULL) {
+    printf("p=%p lexeme=%s type=%s\n", (void *)p, p->lexeme,
+           stringFromToken(p->type));
     printf("Checking next expected next tokens...\n");
     printf("step value: %d\n", step);
     TokenType *next_tokens = state_machine[step].expected_next_tokens;
     char state_name[strlen(state_machine[step].state_name) + 1];
     strcpy(state_name, state_machine[step].state_name);
+    printf("Current state: %s\n", state_name);
     printf("Got the next tokens.\n");
 
     if (strcmp(state_name, "obj_begin") == 0) {
@@ -407,6 +409,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
                valid, stringFromToken(p->type));
         step = 4;
         p += valid;
+        count += valid;
         continue;
       } else if (p->type == ARR_BEGIN) {
         printf("Checking inner array validity...\n");
@@ -419,6 +422,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
                valid, stringFromToken(p->type));
         step = 4;
         p += valid;
+        count += valid;
         continue;
       }
     }
@@ -430,9 +434,10 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
                                     p->type) != -1) {
       if (strcmp(state_name, "value") == 0) {
         if (p->type == COMMA) {
-          step = (step + 1) % 7;
+          step = 5;
         } else if (p->type == OBJ_END) {
-          step = (step + 2) % 7;
+          printf("Ending bracket detected\n");
+          step = 6;
         } else {
           printf("Syntax error\n");
           return -1;
@@ -481,18 +486,24 @@ int check_valid_array(Token *tokens) {
       {"end", (TokenType[]){}, 0},
   };
 
-  printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
   while (p != NULL && p->lexeme != NULL) {
+    printf("p=%p lexeme=%s type=%s\n", (void *)p, p->lexeme,
+           stringFromToken(p->type));
     printf("Checking next expected next tokens in array current step % s...\n",
            state_machine[step].state_name);
     TokenType *next_tokens = state_machine[step].expected_next_tokens;
     char state_name[strlen(state_machine[step].state_name) + 1];
     strcpy(state_name, state_machine[step].state_name);
+    printf("Current state: %s\n", state_name);
     printf("Got the next tokens in array.\n");
 
     if (p->type == INVALID) {
       printf("Syntax error: Invalid token type is present\n");
       return -1;
+    }
+    if (p->type == ARR_END) {
+      printf("Returning after finding end bracket with %d steps\n", count);
+      return count + 1;
     }
 
     if (strcmp(state_name, "end") == 0) {
@@ -537,9 +548,9 @@ int check_valid_array(Token *tokens) {
                                     p->type) != -1) {
       if (strcmp(state_name, "value") == 0) {
         if (p->type == COMMA) {
-          step = (step + 1) % 5;
+          step = 3;
         } else if (p->type == ARR_END) {
-          step = (step + 2) % 5;
+          step = 4;
         } else {
           printf("Syntax error\n");
           return -1;
