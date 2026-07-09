@@ -238,7 +238,7 @@ Token *lexical_analysis(const char *fname) {
 
       tokens[curr_token_idx].type = OBJ_BEGIN;
       curr_token_idx++;
-      // printf("Found beggining bracket\n");
+      printf("Found beggining bracket\n");
       break;
     case '}':
       tokens[curr_token_idx].lexeme = malloc(2);
@@ -247,7 +247,7 @@ Token *lexical_analysis(const char *fname) {
       tokens[curr_token_idx].lexeme[1] = '\0';
       tokens[curr_token_idx].type = OBJ_END;
       curr_token_idx++;
-      // printf("Found end bracket\n");
+      printf("Found end bracket\n");
       break;
     case '[':
       tokens[curr_token_idx].lexeme = malloc(2);
@@ -256,7 +256,7 @@ Token *lexical_analysis(const char *fname) {
       tokens[curr_token_idx].lexeme[1] = '\0';
       tokens[curr_token_idx].type = ARR_BEGIN;
       curr_token_idx++;
-      // printf("Found beggining array bracket\n");
+      printf("Found beggining array bracket\n");
       break;
     case ']':
       tokens[curr_token_idx].lexeme = malloc(2);
@@ -265,7 +265,7 @@ Token *lexical_analysis(const char *fname) {
       tokens[curr_token_idx].lexeme[1] = '\0';
       tokens[curr_token_idx].type = ARR_END;
       curr_token_idx++;
-      // printf("Found end array bracket\n");
+      printf("Found end array bracket\n");
       break;
     case ':':
       tokens[curr_token_idx].lexeme = malloc(2);
@@ -274,7 +274,7 @@ Token *lexical_analysis(const char *fname) {
       tokens[curr_token_idx].lexeme[1] = '\0';
       tokens[curr_token_idx].type = PUNCTUATOR;
       curr_token_idx++;
-      // printf("Found colon\n");
+      printf("Found colon\n");
       break;
     case ',':
       tokens[curr_token_idx].lexeme = malloc(2);
@@ -283,34 +283,37 @@ Token *lexical_analysis(const char *fname) {
       tokens[curr_token_idx].lexeme[1] = '\0';
       tokens[curr_token_idx].type = COMMA;
       curr_token_idx++;
-      // printf("Found comma\n");
+      printf("Found comma\n");
       break;
     case '\"':
-      // printf("Found double-quote string\n");
+      printf("Found double-quote string\n");
       tokens[curr_token_idx] = get_string_token(fp);
       curr_token_idx++;
       break;
     // skip the trailing whitespaces
     case ' ':
-      // printf("Skipping whitespace\n");
+      printf("Skipping whitespace\n");
       break;
     case '\n':
-      // printf("Found file ending newline\n");
+      printf("Found file ending newline\n");
       break;
     case EOF:
-      // printf("Found EOF\n");
+      printf("Found EOF\n");
+      break;
+    case 9:
+      printf("Skipping tabulation chraracter\n");
       break;
     default:
       char aux[2];
       aux[0] = curr;
       aux[1] = '\0';
       if (isdigit(curr) || strcmp(aux, "-") == 0) {
-        // printf("checking if valid numeric token\n");
+        printf("checking if valid numeric token\n");
         tokens[curr_token_idx] = get_numeric_token(fp, curr);
         curr_token_idx++;
       } else if (strchr("tfn", curr)) {
         // TODO: Handle checking for true, false or null
-        // printf("checking if boolean or null\n");
+        printf("checking if boolean or null\n");
         tokens[curr_token_idx] = get_bool_null_token(fp, curr);
         curr_token_idx++;
       } else {
@@ -320,7 +323,7 @@ Token *lexical_analysis(const char *fname) {
         tokens[curr_token_idx].lexeme[1] = '\0';
         tokens[curr_token_idx].type = INVALID;
         curr_token_idx++;
-        // printf("Unkown character\n");
+        printf("Unkown character: %d\n", curr);
       }
       break;
     }
@@ -353,14 +356,14 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
 
   // the state machine represents the current value, while p represents
   // the next step
-  // printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
+  printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
   while (p != NULL && p->lexeme != NULL) {
-    // printf("Checking next expected next tokens...\n");
-    // printf("step value: %d\n", step);
+    printf("Checking next expected next tokens...\n");
+    printf("step value: %d\n", step);
     TokenType *next_tokens = state_machine[step].expected_next_tokens;
     char state_name[strlen(state_machine[step].state_name) + 1];
     strcpy(state_name, state_machine[step].state_name);
-    // printf("Got the next tokens.\n");
+    printf("Got the next tokens.\n");
 
     if (strcmp(state_name, "obj_begin") == 0) {
       // modify to not allow nested objects inside internal JSON
@@ -372,22 +375,21 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
 
     if (strcmp(state_name, "end") == 0) {
       if (stop_at_closing_bracket == 1) {
-        // printf("Exiting at first detected closing bracket after %d traversed
-        // "
-        //        "tokens...\n",
-        //        count);
+        printf("Exiting at first detected closing bracket after %d traversed "
+               "tokens...\n",
+               count);
         return count;
       } else {
         if (p->lexeme != NULL) {
-          // printf("Invalid syntax: JSON object has trailing text after "
-          //        "closing\n");
+          printf("Invalid syntax: JSON object has trailing text after "
+                 "closing\n");
           return -1;
         }
       }
     }
 
     if (p->type == INVALID) {
-      // printf("Syntax error: Invalid token type is present\n");
+      printf("Syntax error: Invalid token type is present\n");
       return -1;
     }
 
@@ -395,26 +397,26 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
     // recursively check if json value is valid before continuing
     if (strcmp(state_name, "colon") == 0) {
       if (p->type == OBJ_BEGIN) {
-        // printf("Checking inner JSON validity...\n");
+        printf("Checking inner JSON validity...\n");
         int valid = syntactic_analysis(p, 1);
         if (valid <= 0) {
-          // printf("Syntax error: JSON value has an invalid structure\n");
+          printf("Syntax error: JSON value has an invalid structure\n");
           return -1;
         }
-        // printf("Advancing %d steps from current position with token: %s\n",
-        //        valid, stringFromToken(p->type));
+        printf("Advancing %d steps from current position with token: %s\n",
+               valid, stringFromToken(p->type));
         step = 4;
         p += valid;
         continue;
       } else if (p->type == ARR_BEGIN) {
-        // printf("Checking inner array validity...\n");
+        printf("Checking inner array validity...\n");
         int valid = check_valid_array(p);
         if (valid <= 0) {
-          // printf("Syntax error: Array value has an invalid structure\n");
+          printf("Syntax error: Array value has an invalid structure\n");
           return -1;
         }
-        // printf("Advancing %d steps from current position with token: %s\n",
-        //        valid, stringFromToken(p->type));
+        printf("Advancing %d steps from current position with token: %s\n",
+               valid, stringFromToken(p->type));
         step = 4;
         p += valid;
         continue;
@@ -432,7 +434,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
         } else if (p->type == OBJ_END) {
           step = (step + 2) % 7;
         } else {
-          // printf("Syntax error\n");
+          printf("Syntax error\n");
           return -1;
         }
       } else if (strcmp(state_name, "comma") == 0) {
@@ -441,7 +443,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
         } else if (p->type == STRING) {
           step = 2;
         } else {
-          // printf("Syntax error\n");
+          printf("Syntax error\n");
           return -1;
         }
       } else {
@@ -452,18 +454,17 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
         }
       }
     } else {
-      // printf("Error: JSON doesn't have a valid token type, instead have token
-      // "
-      //        "type: %s\n",
-      //        stringFromToken(p->type));
+      printf("Error: JSON doesn't have a valid token type, instead have token "
+             "type: %s\n",
+             stringFromToken(p->type));
       return -1;
     }
     p++;
   }
 
-  // printf("Exiting (exit on inner brackets = % d) JSON check with %d
-  // steps...\n",
-  //        stop_at_closing_bracket, step);
+  printf(
+      "Exiting (exit on inner brackets = % d) JSON check with %d steps...\n ",
+      stop_at_closing_bracket, step);
   return count;
 }
 
@@ -480,23 +481,22 @@ int check_valid_array(Token *tokens) {
       {"end", (TokenType[]){}, 0},
   };
 
-  // printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
+  printf("p=%p lexeme=%p type=%d\n", (void *)p, (void *)p->lexeme, p->type);
   while (p != NULL && p->lexeme != NULL) {
-    // printf("Checking next expected next tokens in array current step
-    // %s...\n",
-    //        state_machine[step].state_name);
+    printf("Checking next expected next tokens in array current step % s...\n",
+           state_machine[step].state_name);
     TokenType *next_tokens = state_machine[step].expected_next_tokens;
     char state_name[strlen(state_machine[step].state_name) + 1];
     strcpy(state_name, state_machine[step].state_name);
-    // printf("Got the next tokens in array.\n");
+    printf("Got the next tokens in array.\n");
 
     if (p->type == INVALID) {
-      // printf("Syntax error: Invalid token type is present\n");
+      printf("Syntax error: Invalid token type is present\n");
       return -1;
     }
 
     if (strcmp(state_name, "end") == 0) {
-      // printf("Returning after finding end bracket with %d steps\n", count);
+      printf("Returning after finding end bracket with %d steps\n", count);
       return count;
     }
 
@@ -505,25 +505,25 @@ int check_valid_array(Token *tokens) {
     if (strcmp(state_name, "arr_begin") == 0 ||
         strcmp(state_name, "comma") == 0) {
       if (p->type == OBJ_BEGIN) {
-        // printf("Checking inner JSON validity...\n");
+        printf("Checking inner JSON validity...\n");
         int valid = syntactic_analysis(p, 1);
         if (valid <= 0) {
-          // printf("Syntax error: JSON value has an invalid structure\n");
+          printf("Syntax error: JSON value has an invalid structure\n");
           return -1;
         }
-        // printf("Advancing %d steps\n", valid);
+        printf("Advancing %d steps\n", valid);
         step = 2;
         count += valid;
         p += valid;
         continue;
       } else if (p->type == ARR_BEGIN) {
-        // printf("Checking inner array validity...\n");
+        printf("Checking inner array validity...\n");
         int valid = check_valid_array(p);
         if (valid <= 0) {
-          // printf("Syntax error: Array value has an invalid structure\n");
+          printf("Syntax error: Array value has an invalid structure\n");
           return -1;
         }
-        // printf("Advancing %d steps\n", valid);
+        printf("Advancing %d steps\n", valid);
         step = 2;
         count += valid;
         p += valid;
@@ -541,7 +541,7 @@ int check_valid_array(Token *tokens) {
         } else if (p->type == ARR_END) {
           step = (step + 2) % 5;
         } else {
-          // printf("Syntax error\n");
+          printf("Syntax error\n");
           return -1;
         }
       } else if (strcmp(state_name, "comma") == 0) {
@@ -549,7 +549,7 @@ int check_valid_array(Token *tokens) {
             p->type == NULL_TYPE) {
           step = 2;
         } else {
-          // printf("Syntax error\n");
+          printf("Syntax error\n");
           return -1;
         }
       } else {
@@ -560,15 +560,14 @@ int check_valid_array(Token *tokens) {
         }
       }
     } else {
-      // printf("Error: Array doesn't have a valid token type, instead have
-      // token "
-      //        "type: %s\n",
-      //        stringFromToken(p->type));
+      printf("Error: Array doesn't have a valid token type, instead have token "
+             "type : %s\n ",
+             stringFromToken(p->type));
       return -1;
     }
     p++;
   }
-  // printf("Exiting array check...\n");
+  printf("Exiting array check...\n");
   return count;
 }
 
