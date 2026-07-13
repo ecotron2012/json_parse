@@ -23,6 +23,10 @@ void test_invalid_json(void) {
   CU_ASSERT(parse("./invalid/test4.json") == 1);
   CU_ASSERT(parse("./invalid/test5.json") == 1);
   CU_ASSERT(parse("./invalid/test6.json") == 1);
+  CU_ASSERT(parse("./invalid/test7.json") == 1);
+  CU_ASSERT(parse("./invalid/test8.json") == 1);
+  CU_ASSERT(parse("./invalid/test9.json") == 1);
+  CU_ASSERT(parse("./invalid/test10.json") == 1);
 }
 
 int main() {
