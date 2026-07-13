@@ -158,8 +158,10 @@ Token get_numeric_token(FILE *fp, char first) {
       continue;
     }
 
-    // check for delimiter characters before state processing
-    if (strchr(",}:]", curr)) {
+    printf("Current char value: %d\n", curr);
+
+    // check for delimiter or space characters before state processing
+    if (strchr(",}:] ", curr)) {
       ungetc(curr, fp);
       char *copy2 = malloc(strlen(lex) + 1);
       strcpy(copy2, lex);
