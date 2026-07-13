@@ -1,7 +1,7 @@
 main
 test
 runtests
-debug
+*debug
 tags
 # Prerequisites
 *.d
