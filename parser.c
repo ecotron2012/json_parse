@@ -352,7 +352,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
       {"key", (TokenType[]){PUNCTUATOR}, 1},
       {"colon", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE}, 5},
       {"value", (TokenType[]){COMMA, OBJ_END}, 2},
-      {"comma", (TokenType[]){STRING, OBJ_END}, 2},
+      {"comma", (TokenType[]){STRING}, 2},
       {"end", (TokenType[]){}, 0},
   };
 
@@ -468,6 +468,11 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
     }
     p++;
   }
+  // if the parser finishes checking all the tokens, check if the last state
+  // is the ending state
+  if (step != 6) {
+    return -1;
+  }
 
   printf(
       "Exiting (exit on inner brackets = % d) JSON check with %d steps...\n ",
@@ -580,12 +585,17 @@ int check_valid_array(Token *tokens) {
     }
     p++;
   }
+  // if the parser finishes checking all the tokens, check if the last state
+  // is the ending state
+  if (step != 4) {
+    return -1;
+  }
   printf("Exiting array check...\n");
   return count;
 }
 
 int parse(const char *fname) {
-  // printf("testing file: %s...\n", fname);
+  printf("testing file: %s...\n", fname);
   Token *tokens = lexical_analysis(fname);
   Token *p = tokens;
   int valid = syntactic_analysis(tokens, 0);
