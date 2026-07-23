@@ -1,6 +1,7 @@
 main
 test
 runtests
+json_parse
 *debug
 tags
 # Prerequisites

@@ -1,11 +1,18 @@
 #include "parser.h"
 
 int main(int argc, char *argv[]) {
-  int is_invalid = 1;
-  if (argc != 2) {
+  int is_invalid = 0;
+  if (argc <= 1) {
     printf("Usage: json_parse file_name\n");
   } else {
-    is_invalid = parse(argv[1]);
+    while (--argc > 0) {
+      is_invalid = parse(*++argv);
+      if (is_invalid == 1) {
+        printf("Invalid JSON structure at position: \n");
+      } else {
+        printf("JSON is valid\n");
+      }
+    }
   }
-  return is_invalid;
+  return 0;
 }
