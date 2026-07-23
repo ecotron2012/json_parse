@@ -15,12 +15,12 @@ Simple JSON parser, made as a solution for John Crickett's [JSON parser Code Cha
 To install, run:
 
 ```bash
-    sudo make install
+sudo make install
 ```
 
 ## Usage
 ```bash
-    json_parse file1 file2 ...
+json_parse file1 file2 ...
 ```
 
 ## License
