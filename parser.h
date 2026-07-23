@@ -19,7 +19,7 @@ typedef enum {
   OBJ_END,
   STRING,
   CHAR,
-  PUNCTUATOR,
+  COLON,
   NUMBER,
   BOOLEAN,
   COMMA,
@@ -53,9 +53,9 @@ typedef struct {
 } NUMERIC_FSM_INFO_t;
 
 static const char *stringFromToken(TokenType t) {
-  const char *strings[] = {"INVALID", "NULL_TYPE", "OBJ_BEGIN",  "OBJ_END",
-                           "STRING",  "CHAR",      "PUNCTUATOR", "NUMBER",
-                           "BOOLEAN", "COMMA",     "ARR_BEGIN",  "ARR_END",
+  const char *strings[] = {"INVALID", "NULL_TYPE", "OBJ_BEGIN", "OBJ_END",
+                           "STRING",  "CHAR",      "COLON",     "NUMBER",
+                           "BOOLEAN", "COMMA",     "ARR_BEGIN", "ARR_END",
                            "FILE_EOF"};
 
   return strings[t];

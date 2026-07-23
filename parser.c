@@ -274,7 +274,7 @@ Token *lexical_analysis(const char *fname) {
 
       tokens[curr_token_idx].lexeme[0] = curr;
       tokens[curr_token_idx].lexeme[1] = '\0';
-      tokens[curr_token_idx].type = PUNCTUATOR;
+      tokens[curr_token_idx].type = COLON;
       curr_token_idx++;
       printf("Found colon\n");
       break;
@@ -349,7 +349,7 @@ int syntactic_analysis(Token *tokens, int stop_at_closing_bracket) {
   SYNTACTIC_FSM_INFO_t state_machine[] = {
       {"start", (TokenType[]){OBJ_BEGIN}, 1},
       {"obj_begin", (TokenType[]){STRING, OBJ_END}, 2},
-      {"key", (TokenType[]){PUNCTUATOR}, 1},
+      {"key", (TokenType[]){COLON}, 1},
       {"colon", (TokenType[]){STRING, NUMBER, BOOLEAN, NULL_TYPE}, 5},
       {"value", (TokenType[]){COMMA, OBJ_END}, 2},
       {"comma", (TokenType[]){STRING}, 2},
