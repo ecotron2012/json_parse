@@ -3,7 +3,7 @@
 int main(int argc, char *argv[]) {
   int is_invalid = 0;
   if (argc <= 1) {
-    printf("Usage: json_parse file_name\n");
+    printf("Usage: json_parse file1 file2 ...\n");
   } else {
     while (--argc > 0) {
       is_invalid = parse(*++argv);
