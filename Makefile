@@ -1,3 +1,5 @@
+all: build/lib build/program
+
 build:
 	mkdir -p ./build
 
@@ -6,12 +8,20 @@ build/lib:
 	ar rcs libjsonparse.a parser.o
 
 build/program: parser.o
-	gcc main.c -L. -ljsonparse -o main
+	gcc json_parse.c -L. -ljsonparse -o json_parse
 
 build/test: parser.o
 	gcc -o ./tests/runtests ./tests/tests.c -L. -ljsonparse -lcunit
 
 run/test: build/test
 	(cd tests && ./runtests > output.txt)
-run:
-	./main
+
+install: all
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp -f json_parse $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(DESTDIR)$(PREFIX)/bin/json_parse
+
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/json_parse
+
+.PHONY: all build build/lib build/program install uninstall

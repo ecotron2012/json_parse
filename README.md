@@ -5,6 +5,9 @@ Simple JSON parser, made as a solution for John Crickett's [JSON parser Code Cha
 
 ## To-Do list:
 
-- [ ] Format unit test output in markdown format
+- [x] Format unit test output in markdown format
+    - [ ] Enrich the test results format
 - [ ] Show the file contents and point the error position when encountering a parsing error
+- [ ] Add installation steps to run from the command line
+
 
